@@ -56,7 +56,7 @@ To run this project locally, follow these steps:
     * The web server will start on `http://localhost:8080`.
     * The Admin Socket monitor will start on port `8888`.
 
-## 🧪 Usage & Testing
+## Usage & Testing
 
 You can log in using the pre-seeded demo accounts:
 
@@ -69,6 +69,3 @@ You can log in using the pre-seeded demo accounts:
 * **Password:** `pass123`
 
 Navigate to `http://localhost:8080/index.html` to access the platform.
-
-## 👥 Team
-Developed for the 2026 Programming III Project.
