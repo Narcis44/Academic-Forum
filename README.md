@@ -2,7 +2,7 @@
 
 A full-stack web application designed for the academic environment, providing a centralized Q&A platform for students and professors. This system replaces disorganized chat groups with a structured, searchable, and persistent knowledge base.
 
-## 🚀 Key Features
+## Key Features
 
 * **Role-Based Authentication:** Distinct views and permissions for `Students` (ask/answer) and `Professors` (manage courses, post endorsed replies, view analytics).
 * **Dynamic Q&A Feed:** Filter discussions by specific courses, search by keywords, or toggle "Unanswered Only" questions.
@@ -10,13 +10,13 @@ A full-stack web application designed for the academic environment, providing a 
 * **Modern UI/UX:** Responsive vanilla HTML/CSS/JS frontend featuring a **Dark Mode toggle** and automatic **Gravatar profile picture** generation.
 * **TCP Socket Admin Monitor:** A dedicated multi-threaded backend module running on port `8888` for remote server health monitoring without needing HTTP access.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Backend:** Java 17, Spring Boot (Spring Web, Spring Data JPA, Hibernate)
 * **Frontend:** HTML5, CSS3, Vanilla JavaScript (Fetch API)
 * **Database:** MySQL / MariaDB (Normalized to 3rd Normal Form - 3NF)
 
-## 🗄️ Database Architecture
+## Database Architecture
 
 The database (`blue_seals_db`) is strictly normalized to **3NF** to prevent data redundancy and update anomalies. It consists of:
 * **Tables:** `users`, `courses`, `enrollments` (Many-to-Many resolution), `questions`, `answers`.
