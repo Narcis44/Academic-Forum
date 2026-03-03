@@ -33,7 +33,7 @@ To run this project locally, follow these steps:
 
 ### Installation
 
-1.  **Clone the repository:**
+1.  **Clone the repository**
 
 2.  **Database Setup:**
     * Start your MySQL server.
