@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Academic Forum</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        h2, h3 { color: #2c3e50; }
+
+        /* Inputs & Buttons */
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+            background-color: #007bff; color: white; margin-top: 5px;
+        }
+        button:hover { opacity: 0.9; }
+
+        /* Utility Classes */
+        .hidden { display: none; }
+        .card {
+            border: 1px solid #e0e0e0; padding: 15px; margin: 15px 0; border-radius: 8px; background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Forum Specifics */
+        .answer {
+            background-color: #f8f9fa; border-left: 4px solid #28a745; margin-top: 10px; padding: 10px;
+            font-size: 0.95em;
+        }
+
+        .reply-box { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
+
+        /* Search Bar Layout */
+        .search-bar { display: flex; gap: 10px; align-items: center; background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .search-bar input { margin: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="loginSection">
+    <h2 style="text-align:center;">Academic Forum</h2>
+    <div style="max-width: 400px; margin: auto;">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="student@test.com">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="pass123">
+        <button onclick="login()" style="width:100%; margin-top:15px;">Sign In</button>
+    </div>
+</div>
+
+<div class="container hidden" id="dashboardSection">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="welcomeMsg">Welcome</h2>
+        <button onclick="logout()" style="background:#dc3545;">Logout</button>
+    </div>
+
+    <div id="profControls" class="hidden" style="background:#e3f2fd; padding:15px; border-radius:8px; margin-bottom:20px;">
+        <h3>Create New Course</h3>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="newCourseName" placeholder="Course Name (e.g. Advanced AI)">
+            <input type="text" id="newCourseCode" placeholder="Code (e.g. CS404)">
+        </div>
+        <button onclick="createCourse()">Create Course</button>
+    </div>
+
+    <div id="feedSection" class="hidden">
+        <h3>My Feed (Latest Activity)</h3>
+        <div id="feedList"></div>
+        <hr style="margin: 20px 0;">
+    </div>
+
+    <h3>Available Courses</h3>
+    <div id="courseList"></div>
+</div>
+
+<div class="container hidden" id="forumSection">
+    <button onclick="showDashboard()" style="background:#6c757d; margin-bottom:10px;">&larr; Back to Dashboard</button>
+    <h2 id="courseTitle">Forum</h2>
+
+    <div class="search-bar">
+        <input type="text" id="searchBox" placeholder="Search keywords..." style="flex: 2;">
+        <button onclick="searchForum()" style="background-color: #007bff;">Search</button>
+        <button onclick="clearSearch()" style="background-color: #6c757d;">Clear</button>
+        <label style="white-space: nowrap; margin-left: 10px;">
+            <input type="checkbox" id="unansweredFilter" onchange="searchForum()"> Unanswered Only
+        </label>
+    </div>
+
+    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; border: 1px solid #ddd;">
+        <h3 style="margin-top:0;">Ask a Question</h3>
+        <input type="text" id="qTitle" placeholder="Title">
+        <input type="text" id="qContent" placeholder="Details...">
+        <button onclick="postQuestion()" style="background:#28a745;">Post Question</button>
+    </div>
+
+    <div id="questionList"></div>
+</div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let currentUser = { id: null, role: null, name: null };
+    let currentCourseId = null;
+
+    // --- AUTHENTICATION ---
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+
+            const text = await res.text();
+            if (text.startsWith("TOKEN_")) {
+                const parts = text.split("_");
+                currentUser.id = parts[1];
+                currentUser.role = parts[2];
+
+                document.getElementById('loginSection').classList.add('hidden');
+                showDashboard();
+            } else {
+                alert("Login Failed: " + text);
+            }
+        } catch (e) { alert("Server Error: Is backend running?"); }
+    }
+
+    function logout() {
+        location.reload(); // Simple refresh to clear state
+    }
+
+    // --- DASHBOARD ---
+    async function showDashboard() {
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        document.getElementById('forumSection').classList.add('hidden');
+        document.getElementById('welcomeMsg').innerText = `Welcome, ${currentUser.role}`;
+
+        // 1. Show Role-Specific Controls
+        if (currentUser.role === 'Professor') {
+            document.getElementById('profControls').classList.remove('hidden');
+            document.getElementById('feedSection').classList.add('hidden');
+        } else {
+            document.getElementById('profControls').classList.add('hidden');
+            document.getElementById('feedSection').classList.remove('hidden');
+            loadFeed();
+        }
+
+        // 2. Load Course List
+        const res = await fetch('/courses');
+        const courses = await res.json();
+        document.getElementById('courseList').innerHTML = courses.map(c => `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0;">${c.courseName}</h3>
+                    <small style="color:gray;">${c.courseCode} | Prof: ${c.professor ? c.professor.name : 'Unknown'}</small>
+                </div>
+                <button onclick="openForum(${c.id}, '${c.courseName}')">Open Forum</button>
+            </div>
+        `).join('');
+    }
+
+    async function createCourse() {
+        await fetch('/courses', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                courseName: document.getElementById('newCourseName').value,
+                courseCode: document.getElementById('newCourseCode').value,
+                professorId: currentUser.id
+            })
+        });
+        showDashboard();
+    }
+
+    async function loadFeed() {
+        const res = await fetch(`/users/${currentUser.id}/feed`);
+        const questions = await res.json();
+        document.getElementById('feedList').innerHTML = questions.length ? questions.map(q => `
+            <div class="card" style="border-left: 5px solid #17a2b8;">
+                <small style="color:#17a2b8; font-weight:bold;">${q.course ? q.course.courseName : 'Unknown Course'}</small>
+                <h4>${q.title}</h4>
+                <p>${q.content}</p>
+            </div>
+        `).join('') : '<p>No recent activity.</p>';
+    }
+
+    // --- FORUM LOGIC ---
+    function openForum(courseId, courseName) {
+        currentCourseId = courseId;
+        document.getElementById('dashboardSection').classList.add('hidden');
+        document.getElementById('forumSection').classList.remove('hidden');
+        document.getElementById('courseTitle').innerText = courseName + " Forum";
+        clearSearch(); // Load all questions initially
+    }
+
+    async function loadQuestions(keyword = '', unanswered = false) {
+        let url = `/courses/${currentCourseId}/questions`;
+
+        if (keyword.trim().length > 0 || unanswered) {
+            console.log(`Searching: "${keyword}" | Unanswered: ${unanswered}`);
+            url = `/courses/${currentCourseId}/search?keyword=${encodeURIComponent(keyword)}&unansweredOnly=${unanswered}`;
+        }
+
+        const res = await fetch(url);
+        const questions = await res.json();
+        renderQuestions(questions);
+    }
+
+    function searchForum() {
+        const keyword = document.getElementById('searchBox').value;
+        const unanswered = document.getElementById('unansweredFilter').checked;
+        loadQuestions(keyword, unanswered);
+    }
+
+    function clearSearch() {
+        document.getElementById('searchBox').value = '';
+        document.getElementById('unansweredFilter').checked = false;
+        loadQuestions();
+    }
+
+    function renderQuestions(questions) {
+        document.getElementById('questionList').innerHTML = questions.map(q => {
+            // Build Answers HTML
+            const answersHtml = q.answers ? q.answers.map(a => `
+                <div class="answer">
+                    <strong>${a.author ? a.author.name : 'User ' + a.author.id}:</strong>
+                    ${a.content}
+                </div>
+            `).join('') : '';
+
+            // Build Reply Box (Only for Professors)
+            let replyBoxHtml = '';
+            if (currentUser.role === 'Professor') {
+                replyBoxHtml = `
+                    <div class="reply-box">
+                        <input type="text" id="ansInput_${q.id}" placeholder="Type your answer, Professor...">
+                        <button style="background:#f39c12; font-size:0.9em;" onclick="postAnswer(${q.id})">Reply</button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="card">
+                    <div style="margin-bottom:10px;">
+                        <h4 style="margin:0 0 5px 0;">${q.title}</h4>
+                        <p style="margin:0;">${q.content}</p>
+                        <small style="color:gray;">Posted by User ID: ${q.author ? q.author.id : 'Anon'}</small>
+                    </div>
+
+                    <div style="margin-left: 20px;">${answersHtml}</div>
+                    ${replyBoxHtml}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // --- POSTING ACTIONS ---
+    async function postQuestion() {
+        const title = document.getElementById('qTitle').value;
+        const content = document.getElementById('qContent').value;
+        if(!title || !content) return alert("Please fill in title and details.");
+
+        await fetch('/questions', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                authorId: currentUser.id,
+                courseId: currentCourseId
+            })
+        });
+
+        document.getElementById('qTitle').value = '';
+        document.getElementById('qContent').value = '';
+        loadQuestions();
+    }
+
+    async function postAnswer(questionId) {
+        const inputField = document.getElementById(`ansInput_${questionId}`);
+        const content = inputField.value;
+        if (!content) return alert("Please type an answer!");
+
+        await fetch(`/questions/${questionId}/answers`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                content: content,
+                authorId: currentUser.id
+            })
+        });
+
+        loadQuestions();
+    }
+</script>
+
+</body>
+</html>
