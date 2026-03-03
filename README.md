@@ -34,10 +34,6 @@ To run this project locally, follow these steps:
 ### Installation
 
 1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/yourusername/blue-seals-forum.git](https://github.com/yourusername/blue-seals-forum.git)
-    cd blue-seals-forum
-    ```
 
 2.  **Database Setup:**
     * Start your MySQL server.
@@ -75,4 +71,4 @@ You can log in using the pre-seeded demo accounts:
 Navigate to `http://localhost:8080/index.html` to access the platform.
 
 ## 👥 Team
-Developed by the **Blue Seals** Group for the 2026 Software / Database Design Project.
+Developed for the 2026 Programming III Project.
