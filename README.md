@@ -1,4 +1,4 @@
-# Blue Seals Academic Forum 🎓
+# Academic Forum 🎓
 
 A full-stack web application designed for the academic environment, providing a centralized Q&A platform for students and professors. This system replaces disorganized chat groups with a structured, searchable, and persistent knowledge base.
 
